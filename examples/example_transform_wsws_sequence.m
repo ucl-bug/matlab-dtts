@@ -16,9 +16,9 @@
 % ABOUT:
 %     author      - Bradley Treeby
 %     date        - 31 March 2020
-%     last update - 2 April 2020
+%     last update - 20 April 2020
 %
-% See also dtt1D, gradientDTT1D
+% See also dtt1D, gradientDtt1D
 
 % This program is free software: you can redistribute it and/or modify it
 % under the terms of the GNU General Public License as published by the

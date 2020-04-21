@@ -1,16 +1,22 @@
 % DESCRIPTION:
 %     This example script solves the 1D wave equation (written as two
 %     coupled first-order equations) using a DTT-based PSTD method subject
-%     to different combinations of Dirichlet and Neumann boundary
-%     conditions at each end of the domain. The spatial gradients are
-%     calculated using discrete cosine transforms (DCTs) and discrete sine
-%     transforms (DST) chosen to enfore the required boundary condition.
-%     Time integration is performed using a first-order accurate foward
-%     difference scheme. A classical Fourier PSTD method is also used with
-%     periodic bounday conditions for comparison. Further details are given
-%     in [1].
+%     to four different combinations of Dirichlet and Neumann boundary
+%     conditions at each end of the domain.  
 %
-%     This script reproduces Figure 5 of [1].
+%     The spatial gradients are calculated using discrete cosine transforms
+%     (DCTs) and discrete sine transforms (DST) chosen to enfore the
+%     required boundary condition. Time integration is performed using a
+%     first-order accurate foward difference scheme. A classical Fourier
+%     PSTD method is also used with periodic bounday conditions for
+%     comparison. 
+%     
+%     For the DTT-based simulations, the position of the boundary is
+%     assumed to be at the first and last grid points. To account for the
+%     different implied symmetries for the different transform types, the
+%     calculations are performed on grids of different sizes.
+%
+%     Further details are given in [1].
 %
 %     [1] E. Wise, J. Jaros, B. Cox, and B. Treeby, "Pseudospectral
 %     time-domain (PSTD) methods for the wave equation: Realising boundary
@@ -19,11 +25,11 @@
 % ABOUT:
 %     author      - Bradley Treeby
 %     date        - 31 March 2020
-%     last update - 1 April 2020
+%     last update - 20 April 2020
 %
 % Copyright (C) 2020 Bradley Treeby
 %
-% See also dtt1D, gradientDTT1D
+% See also dtt1D, gradientDtt1D
 
 % This program is free software: you can redistribute it and/or modify it
 % under the terms of the GNU General Public License as published by the
@@ -44,11 +50,12 @@ clearvars;
 % DEFINE LITERALS
 % =========================================================================
 
-% shift variables used by gradientDTT1D
-shift_pos = 1;
-shift_neg = 2;
+% shift and align variables used by gradientDtt1D (shift = 1 and shift = 2
+% return the same output if align_output = false)
+shift_output = 1;
+align_output = false;
 
-% transform types used by gradientDTT1D
+% transform types used by gradientDtt1D
 DCT1 = 1;    % WSWS
 DCT2 = 2;    % HSHS
 DCT3 = 3;    % WSWA
@@ -118,6 +125,7 @@ for bc_ind = 1:4
 
     % select figure
     figure(plot_fig);
+    hold on;
     
     % preallocate matrix to store data for waterfall plot
     p_waterfall = zeros(waterfall_snapshots, Nx);
@@ -132,57 +140,86 @@ for bc_ind = 1:4
             % Neumann-Neumann / WSWS
             T1 = DCT1;
             T2 = DST2;
+            
+            % set indices for representative sample
+            ind1 = 1;
+            ind2 = Nx;           
+            
+            % set title
             waterfall_title = 'Neumann-Neumann (WSWS)';
+            title(waterfall_title);
             
         case 2
             
             % Neumann-Dirichlet / WSWA
             T1 = DCT3;
             T2 = DST4;
+            
+            % set indices for representative sample
+            ind1 = 1;
+            ind2 = Nx - 1;
+            
+            % set title
             waterfall_title = 'Neumann-Dirichlet (WSWA)';
+            title(waterfall_title);
             
         case 3
             
             % Dirichlet-Neumann / WAWS
             T1 = DST3;
             T2 = DCT4;
+            
+            % set indices for representative sample
+            ind1 = 2;
+            ind2 = Nx;
+            
+            % set title
             waterfall_title = 'Dirichlet-Neumann (WAWS)';
+            title(waterfall_title);
             
         case 4
 
-            % Neumann-Neumann / WSWS
+            % Dirichlet-Dirichlet / WAWA
             T1 = DST1;
             T2 = DCT2;
+            
+            % set indices for representative sample
+            ind1 = 2;
+            ind2 = Nx - 1;
+            
+            % set title
             waterfall_title = 'Dirichlet-Dirichlet (WAWA)';
+            title(waterfall_title);
             
     end
 
-    % assign initial condition for the pressure
-    p = p0;
+    % assign initial condition for p, just selecting representative sample
+    p = p0(ind1:ind2);
     
     % run the model backwards for dt/2 to calculate the initial condition
     % for u, to take into account the time staggering between p and u
-    u = u0 + (dt / 2) / rho0 * gradientDTT1D(p0, dx, T1, shift_pos);
+    u = u0(1:end - 1) + (dt / 2) / rho0 * gradientDtt1D(p, dx, T1, shift_output, align_output);
         
     % calculate pressure in a loop
     for time_ind = 1:Nt
 
         % update u
-        u = u - dt / rho0 * gradientDTT1D(p, dx, T1, shift_pos);
+        u = u - dt / rho0 * gradientDtt1D(p, dx, T1, shift_output, align_output);
 
         % update p
-        p = p - dt * rho0 * c0^2 * gradientDTT1D(u, dx, T2, shift_neg);
+        p = p - dt * rho0 * c0^2 * gradientDtt1D(u, dx, T2, shift_output, align_output);
 
         % plot pressure field
         if ~rem(time_ind, plot_freq)
-            plot(x, p, 'k-');
+            cla;
+            plot(x(ind1:ind2), p, 'k-');
             set(gca, 'YLim', [-1, 1]);
             drawnow;    
         end
         
         % save the pressure field
         if ~rem(time_ind, Nt / waterfall_snapshots)
-            p_waterfall(waterfall_ind, :) = p;
+            p_waterfall(waterfall_ind, ind1:ind2) = p;
             waterfall_ind = waterfall_ind + 1;
         end
 
@@ -208,6 +245,10 @@ end
 
 % select figure
 figure(plot_fig);
+
+% set title
+waterfall_title = 'Periodic';
+title(waterfall_title);
 
 % preallocate matrix to store data for waterfall plot
 p_waterfall = zeros(waterfall_snapshots, Nx);
@@ -242,6 +283,7 @@ for time_ind = 1:Nt
 
     % plot pressure field
     if ~rem(time_ind, plot_freq)
+        cla;
         plot(x, p, 'k-');
         set(gca, 'YLim', [-1, 1]);
         drawnow;    
@@ -264,7 +306,7 @@ set(gca, 'ZLim', [-1, 1], 'FontSize', 12);
 ylabel('time');
 zlabel('pressure');
 xlabel('position');
-title('Periodic');
+title(waterfall_title);
 grid off
 
 % close animation figure

@@ -1,9 +1,9 @@
 % DESCRIPTION:
 %     This example script creates different periodic sequences of known
 %     symmetry, and then numerically calculates the gradients using
-%     gradientDTT1D. The numerical gradient is then compared with the known
+%     gradientDtt1D. The numerical gradient is then compared with the known
 %     analytical gradient. A test sequence is created for all supported DTT
-%     symmetries. The grid shifting functionality of gradientDTT1D can also
+%     symmetries. The grid shifting functionality of gradientDtt1D can also
 %     be tested by changing the value of shift.
 %       
 % ABOUT:
@@ -13,7 +13,7 @@
 %
 % Copyright (C) 2013-2020 Bradley Treeby
 %
-% See also dtt1D, gradientDTT1D
+% See also dtt1D, gradientDtt1D
 
 % This program is free software: you can redistribute it and/or modify it
 % under the terms of the GNU General Public License as published by the
@@ -68,7 +68,7 @@ for index = 1:length(test_cases)
             end
 
             % compute gradient 
-            dfdx_num        = gradientDTT1D(f, dx, test_case, shift);
+            dfdx_num        = gradientDtt1D(f, dx, test_case, shift);
             dfdx_analytical = -sin(x_out);
             
             % plot functions
@@ -114,7 +114,7 @@ for index = 1:length(test_cases)
             end            
             
             % compute gradient 
-            dfdx_num        = gradientDTT1D(f, dx, test_case, shift);
+            dfdx_num        = gradientDtt1D(f, dx, test_case, shift);
             dfdx_analytical = -sin(x_out);
 
             % plot functions
@@ -160,7 +160,7 @@ for index = 1:length(test_cases)
             end            
 
             % compute gradient 
-            dfdx_num        = gradientDTT1D(f, dx, test_case, shift);
+            dfdx_num        = gradientDtt1D(f, dx, test_case, shift);
             dfdx_analytical = -sin(x_out);
             
             % plot functions
@@ -206,7 +206,7 @@ for index = 1:length(test_cases)
             end            
 
             % compute gradient 
-            dfdx_num        = gradientDTT1D(f, dx, test_case, shift);
+            dfdx_num        = gradientDtt1D(f, dx, test_case, shift);
             dfdx_analytical = -sin(x_out);
 
             % plot functions
@@ -252,7 +252,7 @@ for index = 1:length(test_cases)
             end            
             
             % compute gradient 
-            dfdx_num        = gradientDTT1D(f, dx, test_case, shift);
+            dfdx_num        = gradientDtt1D(f, dx, test_case, shift);
             dfdx_analytical = cos(x_out);
 
             % plot functions
@@ -298,7 +298,7 @@ for index = 1:length(test_cases)
             end            
             
             % compute gradient 
-            dfdx_num        = gradientDTT1D(f, dx, test_case, shift);
+            dfdx_num        = gradientDtt1D(f, dx, test_case, shift);
             dfdx_analytical = cos(x_out);
             
             % plot functions
@@ -344,7 +344,7 @@ for index = 1:length(test_cases)
             end            
             
             % compute gradient 
-            dfdx_num        = gradientDTT1D(f, dx, test_case, shift);
+            dfdx_num        = gradientDtt1D(f, dx, test_case, shift);
             dfdx_analytical = cos(x_out);
             
             % plot functions
@@ -390,7 +390,7 @@ for index = 1:length(test_cases)
             end            
 
             % compute gradient 
-            dfdx_num        = gradientDTT1D(f, dx, test_case, shift);
+            dfdx_num        = gradientDtt1D(f, dx, test_case, shift);
             dfdx_analytical = cos(x_out);
             
             % plot functions

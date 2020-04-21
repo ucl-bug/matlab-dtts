@@ -1,8 +1,8 @@
-function deriv = gradientDTT1D(f, dx, dtt_type, shift)
+function deriv = gradientDtt1D(f, dx, dtt_type, shift, align_output)
 %GRADIENTDTT1D Calculate gradient using discrete trigonometric transforms.
 %
 % DESCRIPTION:
-%     gradientDTT1D computes the spectral gradient of a 1D input function
+%     gradientDtt1D computes the spectral gradient of a 1D input function
 %     using discrete trigonometric transforms (DTTs). The DTTs used to
 %     transform the input to and from the frequency domain are chosen based
 %     on the symmetry of the input f, defined using dtt_type. The gradient
@@ -14,47 +14,55 @@ function deriv = gradientDTT1D(f, dx, dtt_type, shift)
 %     need to be defined). This means that in some cases the basis
 %     functions weights are trimmed or appended after the forward
 %     transform. To ensure the output of gradientDTT1D is the same length
-%     as the input f, additional values are appended or removed from the
-%     calculated gradient after the inverse transform is calculated. These
-%     values are known from the symmetry of the output sequence. 
+%     as the input f, additional values can be appended or removed from the
+%     calculated gradient after the inverse transform is calculated by
+%     setting the optional input pad to true (the default). These values
+%     are known from the symmetry of the output sequence.
 %
-%     For additional details, see [1].
+%     For additional details on gradient calculation using DTTs, see [1].
 %
 %     [1] E. Wise, J. Jaros, B. Cox, and B. Treeby, "Pseudospectral
 %     time-domain (PSTD) methods for the wave equation: Realising boundary
 %     conditions with discrete sine and cosine transforms", 2020.
 %
 % INPUTS:
-%     f           - matrix or vector to find the gradient of
-%     dx          - grid point spacing
-%     dtt_type    - type of discrete trigonometric transform, this should
-%                   correspond to the assumed input symmetry of the input
-%                   function, where:
+%     f            - Vector to find the gradient of.
+%     dx           - Grid point spacing.
+%     dtt_type     - Type of discrete trigonometric transform. This should
+%                    correspond to the assumed input symmetry of the input
+%                    function, where:
 %
-%                       1: DCT-I    WSWS
-%                       2: DCT-II   HSHS
-%                       3: DCT-III  WSWA
-%                       4: DCT-IV   HSHA
-%                       5: DST-I    WAWA
-%                       6: DST-II   HAHA
-%                       7: DST-III  WAWS
-%                       8: DST-IV   HAHS
+%                        1: DCT-I    WSWS
+%                        2: DCT-II   HSHS
+%                        3: DCT-III  WSWA
+%                        4: DCT-IV   HSHA
+%                        5: DST-I    WAWA
+%                        6: DST-II   HAHA
+%                        7: DST-III  WAWS
+%                        8: DST-IV   HAHS
 %
 % OPTIONAL INPUTS:
-%     shift       - integer controlling whether derivative is shifted to a
-%                   staggered grid (default = 0), where 
+%     shift        - Integer controlling whether derivative is shifted to a
+%                    staggered grid (default = 0), where 
 %
-%                       0: no shift
-%                       1: shift by + dx/2
-%                       2: shift by - dx/2
+%                        0: no shift
+%                        1: shift by + dx/2
+%                        2: shift by - dx/2
+%
+%     align_output - Boolean controlling whether the returned values are
+%                    padded and trimmed based on the implied symmetry so
+%                    the output is the same length as the input (default =
+%                    true). Note, if align_output is false, then the
+%                    gradient calculated for shift = 1 and shift = 2 will
+%                    be the same. 
 %
 % OUTPUTS:
-%     dfdx        - gradient of the input function
+%     dfdx         - Gradient of the input function.
 %       
 % ABOUT:
-%     author      - Bradley Treeby
-%     date        - 23 April 2013
-%     last update - 2 April 2020
+%     author       - Bradley Treeby
+%     date         - 23 April 2013
+%     last update  - 20 April 2020
 %
 % Copyright (C) 2013-2020 Bradley Treeby
 %
@@ -84,14 +92,21 @@ DST3 = 7;    % WAWS
 DST4 = 8;    % HAHS
 
 % check for shift input
-if nargin < 4
-    shift = false;
+if (nargin < 4) || isempty(shift)
+    shift = 0;
 end
 
-% make sure the input is 1D
-if numDim(f) > 1
-    error('Input function must be 1D.');
+% check for pad input
+if (nargin < 5) || isempty(align_output)
+    align_output = true;
 end
+
+% check inputs
+validateattributes(f,            {'numeric'}, {'real', 'vector', 'nonsparse'},                      'gradientDTT1D', 'f',            1);
+validateattributes(dx,           {'numeric'}, {'real', 'scalar', 'nonsparse'},                      'gradientDTT1D', 'dx',           2);
+validateattributes(dtt_type,     {'numeric'}, {'integer', 'scalar', 'nonsparse', '>=', 1, '<=', 8}, 'gradientDTT1D', 'dtt_type',     3);
+validateattributes(shift,        {'numeric'}, {'integer', 'scalar', 'nonsparse', '>=', 0, '<=', 2}, 'gradientDTT1D', 'shift',        4);
+validateattributes(align_output, {'logical'}, {'scalar'},                                           'gradientDTT1D', 'align_output', 5);
 
 % reshape to be a row vector
 f  = reshape(f, 1, []);
@@ -341,161 +356,163 @@ end
 
 % add back in the implied values so the output is the same length as the
 % input
-switch dtt_type
-    case 1
-        
-        switch shift
-            case 0
-                
-                % WSWS -> WAWA, add both endpoints
-                deriv = [0, deriv, 0];
-                
-            case 1
+if align_output
+    switch dtt_type
+        case 1
 
-                % WSWS -> HAHA, shift right, mirror right endpoint
-                deriv = [deriv, -deriv(end)];                
-                
-            case 2
-                
-                % WSWS -> HAHA, shift left, mirror left endpoint
-                deriv = [-deriv(1), deriv];                
-                
-        end
-        
-    case 2
-        
-        switch shift
-            case 0
-                
-                % HSHS -> HAHA, no change
-                
-            case 1
-            
-                % HSHS -> WAWA, shift right, append zero
-                deriv = [deriv, 0];
-                
-            case 2
-                
-                % HSHS -> WAWA, shift left, prepend zero
-                deriv = [0, deriv];
-                
-        end
-        
-    case 3
-        
-        switch shift
-            case 0
-                
-                % WSWA -> WAWS, prepend zero, remove right endpoint
-                deriv = [0, deriv(1:end - 1)];                
-                
-            case 1
-                
-                % WSWA -> HAHS, shift right, no change
-                
-            case 2
-                
-                % WSWA -> HAHS, shift left, mirror left endpoint, remove
-                % right endpoint
-                deriv = [-deriv(1), deriv(1:end - 1)];
-                
-        end
-        
-    case 4
-        
-        switch shift
-            case 0
-                
-                % HSHA -> HAHS, no change
-                
-            case 1
-                
-                % HSHA -> WAWS, shift right, no change
-                
-            case 2
-                
-                % HSHA -> WAWS, shift left, prepend zero, remove right
-                % endpoint
-                deriv = [0, deriv(1:end - 1)];
-                
-        end
-           
-    case 5
-        
-        switch shift
-            case 0
-                
-                % WAWA -> WSWS, remove both endpoints
-                deriv = deriv(2:end - 1);
-                
-            case 1
+            switch shift
+                case 0
 
-                % WAWA -> HSHS, shift right, remove left endpoint
-                deriv = deriv(2:end);
-                
-            case 2
-                
-                % WAWA -> HSHS, shift left, remove right endpoint
-                deriv = deriv(1:end - 1); 
-                
-        end
-        
-    case 6
-        
-        switch shift
-            case 0
-                
-                % HAHA -> HSHS, no change
-                
-            case 1
-                
-                % HAHA -> WSWS, shift right, remove left endpoint
-                deriv = deriv(2:end);
-                
-            case 2
-                
-                % HAHA -> WSWS, shift left, remove right endpoint
-                deriv = deriv(1:end - 1); 
-            
-        end
-        
-    case 7
-        
-        switch shift
-            case 0
-                
-                % WAWS -> WSWA, remove left endpoint, append zero
-                deriv = [deriv(2:end), 0];
-                
-            case 1
+                    % WSWS -> WAWA, add both endpoints
+                    deriv = [0, deriv, 0];
 
-                % WAWS -> HSHA, shift right, remove left endpoint, mirror
-                % right endpoint 
-                deriv = [deriv(2:end), -deriv(end)];
-                
-            case 2
-                
-                % WAWS -> HSHA, shift left, no change
-                
-        end
-        
-    case 8
-        
-        switch shift
-            case 0
-                
-                % HAHS -> HSHA, no change
-                
-            case 1
-                
-                % HAHS -> WSWA, shift right, remove left endpoint, append
-                % zero 
-                deriv = [deriv(2:end), 0];
-                
-            case 2
-                
-                % HAHS -> WSWA, shift left, no change
-                
-        end
-        
+                case 1
+
+                    % WSWS -> HAHA, shift right, mirror right endpoint
+                    deriv = [deriv, -deriv(end)];                
+
+                case 2
+
+                    % WSWS -> HAHA, shift left, mirror left endpoint
+                    deriv = [-deriv(1), deriv];                
+
+            end
+
+        case 2
+
+            switch shift
+                case 0
+
+                    % HSHS -> HAHA, no change
+
+                case 1
+
+                    % HSHS -> WAWA, shift right, append zero
+                    deriv = [deriv, 0];
+
+                case 2
+
+                    % HSHS -> WAWA, shift left, prepend zero
+                    deriv = [0, deriv];
+
+            end
+
+        case 3
+
+            switch shift
+                case 0
+
+                    % WSWA -> WAWS, prepend zero, remove right endpoint
+                    deriv = [0, deriv(1:end - 1)];                
+
+                case 1
+
+                    % WSWA -> HAHS, shift right, no change
+
+                case 2
+
+                    % WSWA -> HAHS, shift left, mirror left endpoint, remove
+                    % right endpoint
+                    deriv = [-deriv(1), deriv(1:end - 1)];
+
+            end
+
+        case 4
+
+            switch shift
+                case 0
+
+                    % HSHA -> HAHS, no change
+
+                case 1
+
+                    % HSHA -> WAWS, shift right, no change
+
+                case 2
+
+                    % HSHA -> WAWS, shift left, prepend zero, remove right
+                    % endpoint
+                    deriv = [0, deriv(1:end - 1)];
+
+            end
+
+        case 5
+
+            switch shift
+                case 0
+
+                    % WAWA -> WSWS, remove both endpoints
+                    deriv = deriv(2:end - 1);
+
+                case 1
+
+                    % WAWA -> HSHS, shift right, remove left endpoint
+                    deriv = deriv(2:end);
+
+                case 2
+
+                    % WAWA -> HSHS, shift left, remove right endpoint
+                    deriv = deriv(1:end - 1); 
+
+            end
+
+        case 6
+
+            switch shift
+                case 0
+
+                    % HAHA -> HSHS, no change
+
+                case 1
+
+                    % HAHA -> WSWS, shift right, remove left endpoint
+                    deriv = deriv(2:end);
+
+                case 2
+
+                    % HAHA -> WSWS, shift left, remove right endpoint
+                    deriv = deriv(1:end - 1); 
+
+            end
+
+        case 7
+
+            switch shift
+                case 0
+
+                    % WAWS -> WSWA, remove left endpoint, append zero
+                    deriv = [deriv(2:end), 0];
+
+                case 1
+
+                    % WAWS -> HSHA, shift right, remove left endpoint, mirror
+                    % right endpoint 
+                    deriv = [deriv(2:end), -deriv(end)];
+
+                case 2
+
+                    % WAWS -> HSHA, shift left, no change
+
+            end
+
+        case 8
+
+            switch shift
+                case 0
+
+                    % HAHS -> HSHA, no change
+
+                case 1
+
+                    % HAHS -> WSWA, shift right, remove left endpoint, append
+                    % zero 
+                    deriv = [deriv(2:end), 0];
+
+                case 2
+
+                    % HAHS -> WSWA, shift left, no change
+
+            end
+
+    end
 end

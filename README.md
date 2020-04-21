@@ -1,4 +1,6 @@
 # MATLAB Discrete Trigonometric Transform Library
+[![View MATLAB Discrete Trigonometric Transform Library on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/75071-matlab-discrete-trigonometric-transform-library)
+
 ## Author
 
 This library is written by Bradley Treeby, University College London. Contact: b.treeby@ucl.ac.uk
@@ -32,3 +34,16 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+## Change Log
+
+* v1.1 (21 April 2020): 
+  * Fixed bug in `gradientDtt1D` (missing `numDim` function)
+  * Added `align_output` option to `gradientDtt1D`
+  * Updated `example_wave_eq_pstd_1D` to enforce correct boundary position
+  * Added `example_wave_eq_pstd_1D_non_reflecting` to simulate general boundary conditions
+  * Added `example_wsws_gradient` to illustrate grid shifting with and without `align_output` 
+* Added `example_wave_eq_pstd_2D_neumann` and `example_wave_eq_pstd_2D_dirichlet`  
+  
+* v1.0 (17 April 2020): 
+  * Initial release
