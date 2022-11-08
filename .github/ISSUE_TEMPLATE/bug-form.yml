@@ -1,6 +1,6 @@
 name: Bug Report
 description: File a bug report
-title: "[Bug]: "
+title: "Bug: "
 labels: ["bug"]
 body:
   - type: markdown
@@ -13,7 +13,6 @@ body:
       label: What Happened?
       description: What happened and what did you expect to happen?
       placeholder: What happened.
-      value: "What happened."
     validations:
       required: true
   - type: textarea
@@ -28,7 +27,17 @@ body:
       label: How Can We Reproduce?
       description: Give detailed step-by-step instructions (including examples and/or code snippets) how the bug or error can be reproduced. We encourage you to try, as much as possible, to reduce your problem to the minimal example that still reproduces the issue. 
       placeholder: How to reproduce.
-      value: "How to reproduce."
+    validations:
+      required: true
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - Windows
+        - Linux
+        - Mac
     validations:
       required: true      
   - type: dropdown
@@ -47,17 +56,5 @@ body:
       label: MATLAB Version
       description: What version of MATLAB are you using?
       placeholder: Matlab version.
-      value: "Matlab version."
-    validations:
-      required: true
-  - type: dropdown
-    id: operating-system
-    attributes:
-      label: Operating System
-      description: What operating system are you using?
-      options:
-        - Windows (Default)
-        - Linux
-        - Mac
     validations:
       required: true
