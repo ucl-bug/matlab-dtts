@@ -1,9 +1,7 @@
 name: Bug Report
 description: File a bug report
 title: "[Bug]: "
-labels: ["bug", "triage"]
-assignees:
-  - octocat
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
@@ -15,7 +13,7 @@ body:
       label: What Happened?
       description: What happened and what did you expect to happen?
       placeholder: What happened.
-      value: ""
+      value: "What happened."
     validations:
       required: true
   - type: textarea
@@ -25,12 +23,12 @@ body:
       description: Please copy and paste any relevant error messages or output. This will be automatically formatted into code, so no need for backticks.
       render: shell
   - type: textarea
-    id: description
+    id: reproduce
     attributes:
       label: How Can We Reproduce?
       description: Give detailed step-by-step instructions (including examples and/or code snippets) how the bug or error can be reproduced. We encourage you to try, as much as possible, to reduce your problem to the minimal example that still reproduces the issue. 
       placeholder: How to reproduce.
-      value: ""
+      value: "How to reproduce."
     validations:
       required: true      
   - type: dropdown
@@ -49,7 +47,7 @@ body:
       label: MATLAB Version
       description: What version of MATLAB are you using?
       placeholder: Matlab version.
-      value: ""
+      value: "Matlab version."
     validations:
       required: true
   - type: dropdown
